@@ -1,0 +1,60 @@
+[
+  {
+    "name": "three",
+    "version": "0.180.0",
+    "source_url": {
+      "type": "git",
+      "url": "git+https://github.com/mrdoob/three.js.git"
+    },
+    "commit": "0af9729d0c143a86a1d725d6e2c3ad83301f3f34",
+    "license": "MIT",
+    "dist": {
+      "integrity": "sha512-o+qycAMZrh+TsE01GqWUxUIKR1AL0S8pq7zDkYOQw8GqfX8b8VoCKYUoHbhiX5j+7hr8XsuHDVU6+gkQJQKg9w==",
+      "shasum": "b930cabfb524f6d36bf63e874b4d866888b50487",
+      "tarball": "https://registry.npmmirror.com/three/-/three-0.180.0.tgz",
+      "fileCount": 1117,
+      "unpackedSize": 30764975,
+      "signatures": [
+        {
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+          "sig": "MEUCIQCxVBVq6WmxV5hwuaHp0323ClGM7IB6lkpyYOvozSpc6wIgIcbY0Mv2Swb5u/XMnLgo9PrVf19K0nIqlfd53/v9Y00="
+        }
+      ],
+      "size": 7750248
+    }
+  },
+  {
+    "name": "world-atlas",
+    "version": "2.0.2",
+    "source_url": {
+      "type": "git",
+      "url": "git+https://github.com/topojson/world-atlas.git"
+    },
+    "commit": "a912c0a22c3fbd1979cb6defdd6389d8c35e7c2a",
+    "license": "ISC",
+    "dist": {
+      "shasum": "4bca4a578f3a413bd409c3f07f2054fe7375824f",
+      "size": 2277546,
+      "noattachment": false,
+      "tarball": "https://registry.npmmirror.com/world-atlas/-/world-atlas-2.0.2.tgz",
+      "integrity": "sha512-IXfV0qwlKXpckz1FhwXVwKRjiIhOnWttOskm5CtxMsjgE/MXAYRHWJqgXOpM8IkcPBoXnyTU5lFHcYa5ChG0LQ=="
+    }
+  },
+  {
+    "name": "topojson-client",
+    "version": "3.1.0",
+    "source_url": {
+      "type": "git",
+      "url": "git+https://github.com/topojson/topojson-client.git"
+    },
+    "commit": "71e5bd6428fd8b7a40fa980d2ef7862140851f03",
+    "license": "ISC",
+    "dist": {
+      "shasum": "22e8b1ed08a2b922feeb4af6f53b6ef09a467b99",
+      "size": 15911,
+      "noattachment": false,
+      "tarball": "https://registry.npmmirror.com/topojson-client/-/topojson-client-3.1.0.tgz",
+      "integrity": "sha512-605uxS6bcYxGXw9qi62XyrV6Q3xwbndjachmNxu8HWTtVPxZfEJN9fd/SZS1Q54Sn2y0TMyMxFj/cJINqGHrKw=="
+    }
+  }
+]

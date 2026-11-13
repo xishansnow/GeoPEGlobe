@@ -1,0 +1,54 @@
+{
+  "upstream_repository": "https://github.com/seai-lab/TorchSpatial",
+  "commit": "ac7dbcf5694dc99cce136b17fa0c26964d7ee0de",
+  "sources": [
+    {
+      "url": "https://raw.githubusercontent.com/seai-lab/TorchSpatial/ac7dbcf5694dc99cce136b17fa0c26964d7ee0de/main/SpatialRelationEncoder.py",
+      "sha256": "7a25ee624d9c3d4cb8ee2dbae9e3be70feb644147ad36a9e0e73980bfb7c11dd",
+      "vendored": false
+    },
+    {
+      "url": "https://raw.githubusercontent.com/seai-lab/TorchSpatial/ac7dbcf5694dc99cce136b17fa0c26964d7ee0de/main/data_utils.py",
+      "sha256": "536151fa907c4d2074cd5f3ff332ee969bea70519f5414995575eaaf8195cc03",
+      "vendored": false
+    }
+  ],
+  "implementation": "Independent formula adapters; upstream code not vendored",
+  "scope": "User-approved fixed-PE subset; no learned FFN, table embeddings or training",
+  "coordinate_domain": "Global lon/lat chart for planar encoders; unit sphere for xyz/NeRF; explicit per-method units",
+  "single_scale_extension": "For geometric rules S=1 uses min_radius; SphereM+/DFS S=1 uses frequency 1",
+  "classes": {
+    "wrap": "AodhaFFTSpatialRelationPositionEncoder",
+    "grid": "GridCellSpatialRelationPositionEncoder",
+    "theory": "TheoryGridCellSpatialRelationPositionEncoder",
+    "xyz": "XYZSpatialRelationPositionEncoder",
+    "nerf": "NERFSpatialRelationPositionEncoder",
+    "rff": "RFFSpatialRelationPositionEncoder",
+    "rbf": "RBFSpatialRelationPositionEncoder",
+    "spherec": "SphereSpatialRelationPositionEncoder",
+    "spherecplus": "SphereGirdSpatialRelationPositionEncoder",
+    "spherem": "SphereMixScaleSpatialRelationPositionEncoder",
+    "spheremplus": "SphereGridMixScaleSpatialRelationPositionEncoder",
+    "spheredfs": "DFTSpatialRelationPositionEncoder",
+    "sh": "SphericalHarmonicsSpatialRelationPositionEncoder"
+  },
+  "adaptations": [
+    "No trained FFN/SIREN or table embeddings",
+    "RBF center presets are synthetic and replayable; not sampled from a training dataset",
+    "Explicit S=1 continuation instead of upstream division by zero",
+    "FP64 formulas and integration for geometry; no claim of bitwise equivalence to upstream FP32",
+    "Global lon/lat extent fixed for wrap and RFF",
+    "SphereM+ and DFS retain their pinned implementation frequency rule, which does not use min_radius"
+  ],
+  "existing_sh_note": "Existing globe SH uses the common real 4pi basis and canonical angles. Full-degree subspaces are comparable, but channelwise signs/angles are not claimed to reproduce upstream SH; no trained Siren(SH).",
+  "frequency_rules": {
+    "spherec": "1/geomspace(min_radius,max_radius,S)",
+    "spherecplus": "1/geomspace(min_radius,max_radius,S)",
+    "spherem": "1/geomspace(min_radius,max_radius,S)",
+    "spheremplus": "max_radius**(-s/(S-1))",
+    "spheredfs": "max_radius**(-s/(S-1))",
+    "nerf": "pi*2**s",
+    "grid": "1/geomspace(min_radius,max_radius,S), coordinates in degrees",
+    "theory": "1/geomspace(min_radius,max_radius,S), coordinates in degrees"
+  }
+}

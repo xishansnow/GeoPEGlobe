@@ -1,0 +1,13 @@
+{
+  "geope_globe/web/vendor/world-atlas/LICENSE": "8048290dfdb6e83fbed17e8985c8cfc4ce9da9b842642f3d3e497280790cfa31",
+  "geope_globe/web/vendor/world-atlas/package.json": "0bc5556d38851087779b77cff787e16778d76e7860136c9c7537b37fdc79e146",
+  "geope_globe/web/vendor/world-atlas/land-110m.json": "ead5f68119c49a9250902e7da303bcb209341bbb8fefe7369a439b48b704658a",
+  "geope_globe/web/vendor/three/LICENSE": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601",
+  "geope_globe/web/vendor/three/package.json": "aa42494664dba4cf76d89c6975ee38321a402f09a048672e190bad6f13beec93",
+  "geope_globe/web/vendor/topojson-client/topojson-client.min.js": "25cd02ae486cc5063e0215a4e4cfb15de83700c87ac48bac4d57dc6aaf3ebb89",
+  "geope_globe/web/vendor/topojson-client/LICENSE": "4c4d15b635e04e691825a76db7d33f7f2033b55669a7430011694f31e6c65999",
+  "geope_globe/web/vendor/topojson-client/package.json": "2ad6e2d8d4b72ebb90c874bcd0dc77d6ebba17ca71c8f8dc1543ceea77f4f87c",
+  "geope_globe/web/vendor/three/build/three.core.min.js": "61ba0df005b05991361d040d8ff670e1aadfd0ce7aeebd1fdb0725957a8957de",
+  "geope_globe/web/vendor/three/build/three.module.min.js": "e2b5ee6bccd38fd6d8a2428546b83c5f2426d84b152ef82be8055556e3b40eb6",
+  "geope_globe/web/vendor/three/addons/controls/OrbitControls.js": "b97879c748170baadeb3fb84cea1ffdf4674e283dc06042f34e2acb95a76042c"
+}

@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080f1b">
+  <meta name="description" content="比较固定地理位置编码器的空间分配、球谐频谱和锚点响应；使用本地数值 API。">
+  <title>表示的地理 · 地理位置编码器工作台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%230e2433' stroke='%2368dbc0'/%3E%3Cellipse cx='16' cy='16' rx='6' ry='13' fill='none' stroke='%2368dbc0'/%3E%3Cpath d='M3 16h26' stroke='%2368dbc0'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css">
+  <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.min.js"}}</script>
+  <script src="./vendor/topojson-client/topojson-client.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="地理位置编码器工作台首页"><span class="brand-icon">◎</span><span>表示的地理<small>LOCATION ENCODER LAB</small></span></a>
+    <div class="header-note">固定前端 · 原始 PE 与共同空间分别呈现 · 无目标标签</div>
+    <div class="export-actions">
+      <span id="health" class="connection" role="status">连接本地服务…</span>
+      <button id="import-json" class="quiet">导入 JSON</button><input id="json-file" type="file" accept="application/json,.json" hidden>
+      <button id="export-json" class="quiet">导出 JSON</button><select id="png-theme" aria-label="PNG 导出主题"><option value="paper" selected>论文浅色 · 全球平面图</option><option value="screen">屏幕深色 · 地球视角</option></select><button id="export-png" class="accent-outline">导出 PNG ↗</button>
+    </div>
+  </header>
+  <div id="global-error" class="global-error" role="alert" hidden></div>
+  <noscript><p class="global-error">此工作台需要 JavaScript 和支持 WebGL 2 的浏览器。</p></noscript>
+  <main class="workbench">
+    <aside class="config-rail panel" aria-label="编码器配置">
+      <div class="section-heading"><span class="eyebrow">EXPERIMENT CONTROLS</span><h2>配置编码器</h2><p>在相同测度下，观察表示如何分布。</p></div>
+      <div class="slot-tabs" role="tablist" aria-label="选择配置面板"><button id="config-tab-a" role="tab" aria-selected="true" aria-controls="config-a" data-config-tab="a">A · 左侧</button><button id="config-tab-b" role="tab" aria-selected="false" aria-controls="config-b" data-config-tab="b">B · 右侧</button></div>
+      <div id="config-a" class="config-content" role="tabpanel" aria-labelledby="config-tab-a"></div>
+      <div id="config-b" class="config-content" role="tabpanel" aria-labelledby="config-tab-b" hidden></div>
+      <div class="config-center-action"><button id="anchor-to-center" type="button" class="quiet">将手动输入位置设为当前配置侧球冠中心</button></div>
+      <div class="shared-config">
+        <h3>共同计算设置</h3>
+        <label>显示网格 <select id="grid-size"><option value="16">16 × 32 · 快速</option><option value="32" selected>32 × 64 · 默认</option><option value="48">48 × 96</option><option value="64">64 × 128</option><option value="96">96 × 192</option></select></label>
+        <div class="input-pair"><label>频带起点 ℓ<input id="band-min" type="number" min="0" step="1" value="8" required></label><label>频带终点 ℓ<input id="band-max" type="number" min="0" step="1" value="16" required></label></div>
+        <p class="hint">含两端。显示网格只控制采样，不改变编码器定义或带限。</p>
+        <button id="evaluate-all" class="primary full-width">计算并比较 <span>↗</span></button>
+        <p id="catalog-limits" class="hint">正在读取服务计算上限…</p>
+      </div>
+      <div class="rail-footer"><span class="tiny-dot"></span> 本地计算 · 配置可重放</div>
+    </aside>
+
+    <section class="visual-main" aria-label="点编码、地点关系与整体结构">
+      <div class="intro"><div><span class="eyebrow">LOCATION ENCODER EXPLORER</span><h1>点一个地方，<span>看它的编码与全球关系。</span></h1></div><span class="version-tag">GEOMETRY / 04</span></div>
+      <section id="map-explorer" class="map-explorer" aria-label="地球选点与图层">
+        <h2>地球选点与图层</h2>
+        <div class="map-explorer-content">
+      <p class="hint">小白色圆环是 A/B 共用选点，点击任一地球可移动它；勾选“区域构造范围”后，浅色实线是名义目标球冠。球下复选框可叠加构造标记或切换单个原始特征。</p>
+      <div class="globe-grid">
+        <article class="globe-card panel" id="card-a" aria-labelledby="title-a">
+          <div class="globe-heading"><span class="slot-letter">A</span><div><h2 id="title-a">区域 Slepian + 低阶全球球谐</h2><p id="subtitle-a">等待数值计算</p></div><span id="status-a" class="status" role="status">等待</span></div>
+          <div class="globe-viewport" id="globe-a"><div class="globe-caption">拖动旋转 · 滚轮缩放 · 点击选择锚点</div><span class="compass">N ↑</span></div>
+          <div id="error-a" class="slot-error" role="alert" hidden></div>
+          <div class="globe-footer"><span id="coordinate-a">110.00° E · 35.00° N</span><button data-locate="a" class="text-button" title="将 A 相机定位到锚点">定位锚点 ⌖</button></div>
+          <div class="legend" id="legend-a"><canvas width="256" height="8" aria-label="A 颜色图例"></canvas><div><span class="legend-min">—</span><span class="legend-label">共同色标</span><span class="legend-max">—</span></div></div>
+          <div id="boundary-readout-a" class="boundary-readout-slot" hidden></div>
+        </article>
+        <article class="globe-card panel" id="card-b" aria-labelledby="title-b">
+          <div class="globe-heading"><span class="slot-letter slot-b">B</span><div><h2 id="title-b">全球实球谐</h2><p id="subtitle-b">等待数值计算</p></div><span id="status-b" class="status" role="status">等待</span></div>
+          <div class="globe-viewport" id="globe-b"><div class="globe-caption">拖动旋转 · 滚轮缩放 · 点击选择锚点</div><span class="compass">N ↑</span></div>
+          <div id="error-b" class="slot-error" role="alert" hidden></div>
+          <div class="globe-footer"><span id="coordinate-b">110.00° E · 35.00° N</span><button data-locate="b" class="text-button" title="将 B 相机定位到锚点">定位锚点 ⌖</button></div>
+          <div class="legend" id="legend-b"><canvas width="256" height="8" aria-label="B 颜色图例"></canvas><div><span class="legend-min">—</span><span class="legend-label">共同色标</span><span class="legend-max">—</span></div></div>
+          <div id="boundary-readout-b" class="boundary-readout-slot" hidden></div>
+        </article>
+      </div>
+      <section class="anchor-controls panel" aria-label="手动输入共同位置"><h3>手动输入</h3><form id="anchor-form"><div class="input-pair"><label>经度 °<input id="anchor-lon" type="number" min="-180" max="180" step="any" value="110" required aria-label="经度，东经为正"></label><label>纬度 °<input id="anchor-lat" type="number" min="-90" max="90" step="any" value="35" required aria-label="纬度，北纬为正"></label></div><div class="button-pair"><button type="submit" class="accent-outline">定位 A/B ⌖</button></div></form></section>
+      <div class="view-toolbar panel">
+        <div class="view-options"><label><input id="sync-camera" type="checkbox" checked>相机联动</label><label><input id="lock-colors" type="checkbox" checked>共同色标</label><label><input id="show-region" type="checkbox">区域构造范围</label><label><input id="show-centers" type="checkbox">中心节点</label><label><input id="show-channel" type="checkbox">单个原始特征（替换底图）</label><label><input id="show-neighborhood" type="checkbox" checked>选点周边细网格</label></div>
+        <div id="region-layer-info" class="overlay-info" hidden></div>
+        <div id="center-layer-legend" class="overlay-info" hidden><strong>中心节点 · 按构造位置显示</strong><div class="scale-legend" id="scale-legend-a"></div><div class="scale-legend" id="scale-legend-b"></div></div>
+      </div>
+        </div>
+      </section>
+      <nav class="function-tabs panel" aria-label="四个观察问题">
+        <button type="button" data-mode="structure" aria-pressed="false" aria-controls="structure-panel">① 编码器怎样组织 <small>全局结构与偏好</small></button>
+        <button type="button" data-mode="point" aria-pressed="true" aria-controls="point-panel">② 此点的 PE 是什么 <small>原生尺度、中心与特征值</small></button>
+        <button type="button" data-mode="local" aria-pressed="false" aria-controls="local-panel">③ 此点的局部变化 <small>邻域相似度与距离带</small></button>
+        <button type="button" data-mode="relation" aria-pressed="false" aria-controls="relation-panel">④ 哪些地点与它相似 <small>沿路线与全球关系</small></button>
+      </nav>
+      <section id="structure-panel" class="function-panel panel" hidden><h2>编码器的整体结构</h2><p>先看特征怎样组织；右侧检查极点和日界线的同点坐标写法。球上可叠加查看区域构造范围与中心节点。</p><div class="function-grid"><div id="structure-visual-a">等待计算。</div><div id="structure-visual-b">等待计算。</div></div></section>
+      <section id="point-panel" class="function-panel panel">
+        <h2>选点处的原始 PE</h2>
+        <p>白点的编码是下面这一串带符号的特征值。A 与 B 的特征组织方式可以不同；点击特征可看它在全球的形状。</p>
+        <p id="point-view-status" class="profile-status">等待计算。</p>
+        <div class="function-grid">
+          <article><h3>A · <span id="point-title-a">区域 Slepian + 低阶全球球谐</span></h3><div id="point-visual-a">等待计算。</div><div class="selected-point-details"><details class="feature-details"><summary>原始特征向量 φ(x₀)</summary><div id="point-features-a" class="feature-list">等待 API。</div></details><details><summary>数值诊断与来源</summary><div id="diagnostics-a" class="diagnostics"></div></details></div></article>
+          <article><h3>B · <span id="point-title-b">全球实球谐</span></h3><div id="point-visual-b">等待计算。</div><div class="selected-point-details"><details class="feature-details"><summary>原始特征向量 φ(x₀)</summary><div id="point-features-b" class="feature-list">等待 API。</div></details><details><summary>数值诊断与来源</summary><div id="diagnostics-b" class="diagnostics"></div></details></div></article>
+        </div>
+      </section>
+      <section id="local-panel" class="function-panel panel" hidden>
+        <h2>此点的局部变化</h2>
+        <p>上方两个地球显示各地与当前白点的原始 PE 余弦相似度；白点周围的小点是球面细网格。这里分别汇总 A/B 在 20° 邻域内各距离带的采样结果。</p>
+        <div class="function-grid">
+          <article><h3>A · <span id="local-title-a">区域 Slepian + 低阶全球球谐</span></h3><div id="local-visual-a">等待计算。</div><div id="point-metrics-a" class="point-metrics"><p class="hint">等待真实锚点特征与敏感度。</p></div></article>
+          <article><h3>B · <span id="local-title-b">全球实球谐</span></h3><div id="local-visual-b">等待计算。</div><div id="point-metrics-b" class="point-metrics"><p class="hint">等待真实锚点特征与敏感度。</p></div></article>
+        </div>
+      </section>
+      <section id="relation-panel" hidden>
+      <section class="profile-panel panel" aria-labelledby="profile-title">
+        <div class="chart-heading"><div><span class="eyebrow">DISTANCE FROM SELECTED POINT</span><h2 id="profile-title">距离—原始 PE 相似度</h2></div><select id="profile-kind" aria-label="曲线响应量"><option value="raw_similarity" selected>原始 PE 余弦相似度</option><option value="similarity">共同空间相似度（进阶）</option><option value="kernel">共同空间核幅度（进阶）</option></select></div>
+        <div class="profile-encoders"><span id="profile-encoder-a">A（绿线）：等待计算</span><span id="profile-encoder-b">B（蓝线）：等待计算</span></div>
+        <div class="profile-start"><p>点一个地方作为起点，比较沿球面虚线箭头方向走远后，编码怎样改变。</p></div>
+        <p id="profile-origin" class="profile-origin">实际起点：等待计算结果。</p>
+        <p id="profile-status" class="profile-status" role="status" aria-live="polite">等待距离曲线。</p>
+        <div id="profile-chart" class="chart-placeholder" tabindex="0" role="region" aria-label="距离曲线，可横向滚动" aria-describedby="profile-origin profile-status profile-note">计算后查看从起点出发的距离曲线。</div>
+        <p id="profile-note" class="hint">横轴 0 公里是起点，仅显示沿球面虚线箭头方向的已有采样；断线表示未定义。</p>
+      </section>
+      </section>
+      <p id="budget-note" class="comparison-note" role="status">待 API 返回实际带限、特征数与数值秩。</p>
+      <div class="science-note"><span>ⓘ</span><p>颜色帮助比较编码器如何区分位置；预测好坏仍需任务实验。灰暗遮罩表示数值未定义。数学定义与误差见当前功能详情和右侧编码器诊断。</p></div>
+    </section>
+
+    <aside class="analysis-rail" aria-label="与选点位置无关的编码器诊断">
+      <section class="panel spectrum-panel"><div class="section-heading"><span class="eyebrow">HARMONIC SPECTRUM</span><h2>共同球谐频谱</h2><p>逐阶占比 Eℓ/r · 点击柱条选择单阶</p></div><div class="series-key"><span class="key-a">A</span><span class="key-b">B</span><span id="band-label">ℓ = 8–16</span></div><div id="spectrum-chart" class="chart-placeholder">等待 API 频谱。</div><p id="spectrum-status" class="fixed-status" hidden></p><div id="spectrum-summary" class="hint"></div><p class="hint">横轴为共同球谐阶 ℓ，是处理后保留表示的逐阶能量；不随查询白点移动。Slepian 模式序号不是这一横轴。</p></section>
+      <section class="panel boundary-side-panel" aria-labelledby="boundary-side-title"><div class="section-heading"><span class="eyebrow">COORDINATE EQUIVALENCE</span><h2 id="boundary-side-title">极点与日界线</h2><p>同一球面点的两种经纬写法；固定三点检查，与当前选点无关。</p></div><div class="boundary-side-tabs" role="tablist" aria-label="切换编码器坐标检查"><button id="boundary-tab-a" type="button" role="tab" aria-selected="true" aria-controls="boundary-panel-a" data-boundary-tab="a">A</button><button id="boundary-tab-b" type="button" role="tab" aria-selected="false" aria-controls="boundary-panel-b" data-boundary-tab="b">B</button></div><div class="boundary-side-content"><article id="boundary-panel-a" role="tabpanel" aria-labelledby="boundary-tab-a"><h3>A · <span id="boundary-title-a">等待编码器</span></h3><div id="boundary-sidebar-a">等待计算。</div></article><article id="boundary-panel-b" role="tabpanel" aria-labelledby="boundary-tab-b" hidden><h3>B · <span id="boundary-title-b">等待编码器</span></h3><div id="boundary-sidebar-b">等待计算。</div></article></div></section>
+    </aside>
+  </main>
+  <footer class="page-footer"><span>GEOPE GLOBE / LOCAL WORKBENCH</span><span>探索与构造检查 · 不代表预测性能</span></footer>
+  <div id="toast" role="status" hidden></div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
